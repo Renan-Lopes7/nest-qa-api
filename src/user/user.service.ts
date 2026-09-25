@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -57,11 +58,19 @@ export class UserService {
     return user;
   }
 
-  async updateUser(updateUserDto: UpdateUserDto, id: number) {
+  async updateUser(
+    updateUserDto: UpdateUserDto,
+    id: number,
+    requestId: number,
+  ) {
     const user = await this.prismaService.user.findFirst({
-      where: { id: +id },
+      where: { id: id },
     });
     if (!user) throw new NotFoundException('User not found.');
+
+    if (id !== requestId) {
+      throw new ForbiddenException('You can only edit your omw account');
+    }
 
     const { name, email, password, currentPassword } = updateUserDto;
 
