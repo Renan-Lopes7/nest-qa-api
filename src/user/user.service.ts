@@ -63,14 +63,14 @@ export class UserService {
     id: number,
     requestId: number,
   ) {
+    if (id !== requestId) {
+      throw new ForbiddenException('You can only edit your omw account');
+    }
+
     const user = await this.prismaService.user.findFirst({
       where: { id: id },
     });
     if (!user) throw new NotFoundException('User not found.');
-
-    if (id !== requestId) {
-      throw new ForbiddenException('You can only edit your omw account');
-    }
 
     const { name, email, password, currentPassword } = updateUserDto;
 
@@ -105,9 +105,19 @@ export class UserService {
     };
   }
 
-  async deleteUser(id: number) {
+  async deleteUser(id: number, requestId: number) {
+    if (id !== requestId)
+      throw new ForbiddenException(
+        'You can´t delete an account that isn´t yours ',
+      );
+
     const user = await this.prismaService.user.findFirst({ where: { id } });
     if (!user) throw new NotFoundException('User not found.');
+
+    if (user.id !== requestId)
+      throw new ForbiddenException(
+        'You can´t delete an account that isn´t yours ',
+      );
 
     const deleteUser = await this.prismaService.user.delete({
       where: { id: user.id },

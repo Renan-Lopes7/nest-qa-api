@@ -15,11 +15,8 @@ import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthGuard } from '../auth/auth.guard';
-import { Request } from 'express';
+import type { AuthRequest } from '../auth/interfaces/auth.request';
 
-interface AuthRequest extends Request {
-  user: { sub: number };
-}
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -52,7 +49,7 @@ export class UserController {
 
   @UseGuards(AuthGuard)
   @Delete(':id')
-  delete(@Param('id', ParseIntPipe) id: number) {
-    return this.userService.deleteUser(id);
+  delete(@Param('id', ParseIntPipe) id: number, @Req() req: AuthRequest) {
+    return this.userService.deleteUser(id, req.user.sub);
   }
 }
